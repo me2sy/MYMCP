@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mymcp"
+version = "0.1.1"
+authors = [
+    {name = "Me2sY", email = "me2sy@outlook.com"}
+]
+description = "Protocols of Minecraft version 1.21.4 Encode/Decode in Python."
+readme = "README.md"
+requires-python = ">= 3.12"
+keywords = ["Minecraft", "Protocols", "Game"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: Chinese (Simplified)",
+    "Topic :: Games/Entertainment"
+]
+
+dependencies = [
+    "pynbt",
+    "numpy", "pandas",
+]
+
+[project.urls]
+Homepage = "https://github.com/me2sy/MYMCP"
+Issues = "https://github.com/me2sy/MYMCP/issues"
