@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mymcp"
-version = "0.1.1"
+version = "0.1.2"
 authors = [
     {name = "Me2sY", email = "me2sy@outlook.com"}
 ]
-description = "Protocols of Minecraft version 1.21.4 Encode/Decode in Python."
+description = "Encode and decode the protocols of Minecraft (Java Edition) version 1.21.4 in Python. With a demo proxy server and a demo client/player."
 readme = "README.md"
 requires-python = ">= 3.12"
 keywords = ["Minecraft", "Protocols", "Game"]
@@ -21,8 +21,12 @@ classifiers = [
 ]
 
 dependencies = [
+    "loguru",
     "pynbt",
     "numpy", "pandas",
+
+    # For Proxy / Client
+    "twisted"
 ]
 
 [project.urls]

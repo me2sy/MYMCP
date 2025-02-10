@@ -332,7 +332,7 @@ class PlayProtocols:
                 Lists all of the commands on the server, and how they are parsed.
                 This is a directed graph, with one root node.
                 Each redirect or child node must refer only to nodes that have already been declared.
-                # TODO Node Not Finished!
+                # TODO
             """
             PACKET_ID_HEX = 0x11
             DIRECT = ProtocolEnum.Direction.SC
@@ -615,6 +615,7 @@ class PlayProtocols:
                 Field('chunk_x', Int),
             ]
 
+
         class SCPlayGameEvent(PacketPlay):
             """
                 Used for a wide variety of game events, from weather to bed use to game mode to demo messages.
@@ -699,6 +700,21 @@ class PlayProtocols:
                 Field('data', ChunkData),
                 Field('light', LightData)
             ]
+
+            @classmethod
+            def decode(cls, bytes_io: IO, dimension_chunk_size: int = 24) -> OrderedDict[str, Any]:
+                """
+                    不同世界 chunk size 不同
+                :param bytes_io:
+                :param dimension_chunk_size:
+                :return:
+                """
+                res = OrderedDict()
+                res['chunk_x'] = Int.decode(bytes_io)
+                res['chunk_z'] = Int.decode(bytes_io)
+                res['data'] = ChunkData.decode(bytes_io, dimension_chunk_size)
+                res['light'] = LightData.decode(bytes_io)
+                return res
 
         class SCPlayWorldEvent(PacketPlay):
             """
@@ -842,6 +858,10 @@ class PlayProtocols:
             DIRECT = ProtocolEnum.Direction.SC
             FIELDS = []
 
+        @staticmethod
+        def delta2cur(delta: int, prev: float) -> float:
+            return delta / 4096.0 + prev
+
         class SCPlayUpdateEntityPosition(PacketPlay):
             """
                 This packet is sent by the server when an entity moves a small distance.
@@ -938,7 +958,7 @@ class PlayProtocols:
             PACKET_ID_HEX = 0x34
             DIRECT = ProtocolEnum.Direction.SC
             FIELDS = [
-                # 0: Main hand, 1: Off hand.
+                # 0: Main hand, 1: Off hand .
                 Field('hand', VarInt),
             ]
 
@@ -1239,10 +1259,8 @@ class PlayProtocols:
 
         class SCPlaySynchronizePlayerPosition(PacketPlay):
             """
-                Teleports the client, e.g. during login, when using an ender pearl,
-                in response to invalid move packets, etc.
-                Due to latency, the server may receive outdated movement packets sent
-                before the client was aware of the teleport.
+                Teleports the client, e.g. during login, when using an ender pearl, in response to invalid move packets, etc.
+                Due to latency, the server may receive outdated movement packets sent before the client was aware of the teleport.
                 To account for this, the server ignores all movement packets
                 from the client until a Confirm Teleportation packet with an ID matching the one
                 sent in the teleport packet is received.
@@ -1926,8 +1944,7 @@ class PlayProtocols:
                 # In ticks; not changed by server commands.
                 Field('world_age', Long),
 
-                # The world (or region) time, in ticks.
-                # If negative the sun will stop moving at the Math.abs of the time.
+                # The world (or region) time, in ticks. If negative the sun will stop moving at the Math.abs of the time.
                 Field('time_of_day', Long),
 
                 # If true, the client should automatically advance the time of day according to its ticking rate.
@@ -2444,7 +2461,7 @@ class PlayProtocols:
                     'array_length'
                 ),
                 Field('message_count', VarInt),
-                Field('Acknowledge', FixedBitSet),
+                Field('Acknowledge', FixedBitSet), # TODO Fixed BitSet
             ]
 
             @classmethod
@@ -2474,7 +2491,7 @@ class PlayProtocols:
                     Field('signature_bytes', Byte),
                 ], name_of_num_field=256, optional_field_name='has_signature'),
                 Field('message_count', VarInt),
-                Field('acknowledged', FixedBitSet),
+                Field('acknowledged', FixedBitSet), # TODO Fixed BitSet
             ]
 
             @classmethod
@@ -2526,8 +2543,7 @@ class PlayProtocols:
             """
                 Client Status.
                 Action ID	Action	Notes
-                0	Perform respawn	Sent when the client is ready to complete login
-                and when the client is ready to respawn after death.
+                0	Perform respawn	Sent when the client is ready to complete login and when the client is ready to respawn after death.
                 1	Request stats	Sent when the client opens the Statistics menu.
             """
             PACKET_ID_HEX = 0x0A
@@ -2915,8 +2931,7 @@ class PlayProtocols:
         class CSPlayPickItemFromBlock(PacketPlay):
             """
                 Used to swap out an empty space on the hotbar with the item in the given inventory slot.
-                The Notchian client uses this for pick block functionality (middle click)
-                to retrieve items from the inventory.
+                The Notchian client uses this for pick block functionality (middle click) to retrieve items from the inventory.
             """
             PACKET_ID_HEX = 0x22
             DIRECT = ProtocolEnum.Direction.CS
@@ -3233,7 +3248,7 @@ class PlayProtocols:
 
         class CSPlayUpdateSign(PacketPlay):
             """
-                This message is sent from the client to the server when the “Done” button is pushed after placing a sign
+                This message is sent from the client to the server when the “Done” button is pushed after placing a sign.
                 The server only accepts this packet after Open Sign Editor, otherwise this packet is silently ignored.
             """
             PACKET_ID_HEX = 0x39

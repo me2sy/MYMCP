@@ -5,11 +5,12 @@
     Data Type in Minecraft 1.21.4
 
     Log:
-         2025-02-08 0.1.0 Me2sY 创建
+        2025-02-10 0.1.2 Me2sY  优化结构
+        2025-02-08 0.1.0 Me2sY  创建
 """
 
 __author__ = 'Me2sY'
-__version__ = '0.1.0'
+__version__ = '0.1.2'
 
 __all__ = [
     'DataType',
@@ -37,7 +38,7 @@ __all__ = [
 
     # Chunk
     'ChunkSection', 'ChunkData', 'LightData',
-    'decode_palette', 'block_ids', 'Chunk', 'ChunkManager'
+    'decode_palette', 'block_ids', 'Chunk',
 
 ]
 
@@ -51,7 +52,6 @@ import pathlib
 from mutf8 import decode_modified_utf8
 import numpy as np
 import pandas as pd
-
 from socket import socket
 import struct
 from typing import IO, Sized, Iterable, Tuple
@@ -59,8 +59,8 @@ import uuid
 
 from pynbt import NBTFile
 
+
 # Block IDS
-# Export by Generator
 
 block_ids = {}
 with pathlib.Path(__file__).parent.joinpath('blocks.json').open('r') as f:
@@ -288,6 +288,7 @@ class VarInt(DataType):
 
 
 class VarLong(VarInt):
+
     MAX_BYTES = 10
     INT_BITS = 32
     READ_FORMAT = 'l'
@@ -456,6 +457,9 @@ class Position(DataType):
         self.y = y
         self.z = z
 
+    def __eq__(self, other: 'Position'):
+        return self.x == other.x and self.y == other.y and self.z == other.z
+
     def __repr__(self):
         return f"Position({self.x}, {self.y}, {self.z})"
 
@@ -541,7 +545,6 @@ class NBT(DataType):
     """
         NBT Type
     """
-
     @classmethod
     def decode(cls, bytes_io: IO, network_nbt: bool = True) -> NBTFile:
         """
@@ -580,11 +583,9 @@ class NBT(DataType):
 class Slot(DataType):
     """
         Slot Type
-        The Slot data structure defines how an item is represented when inside an inventory window of any kind,
-        such as a chest or furnace.
+        The Slot data structure defines how an item is represented when inside an inventory window of any kind, such as a chest or furnace.
         TODO encode
     """
-
     class BlockPredicate(DataType):
 
         class BlockProperty(DataType):
@@ -780,7 +781,7 @@ class Slot(DataType):
             res['sound_event'] = Slot.IDOrSoundEvent.decode(bytes_io)
             res['description'] = TextComponent.decode(bytes_io)
             res['duration'] = Float.decode(bytes_io)
-            res['output'] = VarInt.decode(bytes_io)  # The output strength given by a comparator. Between 0 and 15.
+            res['output'] = VarInt.decode(bytes_io)     # The output strength given by a comparator. Between 0 and 15.
             return res
 
     class IDOrJukeboxSong(DataType):
@@ -855,6 +856,7 @@ class Slot(DataType):
                 return True, res
             else:
                 return False, []
+
 
     @dataclass
     class Array:
@@ -991,15 +993,15 @@ class Slot(DataType):
         37: [NBT],
 
         # map_post_processing
-        38: [VarInt],  # 0 Lock 1 Scale
+        38: [VarInt],   # 0 Lock 1 Scale
 
         # TODO
         # Projectiles loaded into a charged crossbow
-        39: [],  # Array Slot
+        39: [], # Array Slot
 
         # TODO
         # Contents of a bundle.
-        40: [],  # Array Slot
+        40: [], # Array Slot
 
         # Visual and effects of a potion item
         41: [PotionContents],
@@ -1063,7 +1065,7 @@ class Slot(DataType):
                 String,
                 String,
                 Optional(data_type=[String])
-            ])],
+        ])],
 
         # note_block_sound
         58: [Identifier],
@@ -1093,6 +1095,7 @@ class Slot(DataType):
         # container_loot
         66: [NBT]
     }
+
 
     @classmethod
     def decode(cls, bytes_io: IO):
@@ -1137,10 +1140,10 @@ class Slot(DataType):
         :param value:
         :return:
         """
-        raise NotImplementedError
 
 
 class Angle(DataType):
+
     """
         A rotation angle in steps of 1/256 of a full turn
         Whether or not this is signed does not matter, since the resulting angles are the same.
@@ -1185,16 +1188,15 @@ class FixedBitSet(DataType):
         Note that this is different from BitSet, which uses longs.
     """
 
-    # In 1.21.4
-    LENGTH = 20
+    COUNT = 0
 
     @classmethod
     def decode(cls, bytes_io: IO) -> bytes:
-        return bytes_io.read(3)     # math.ceil(20 / 8)
+        return bytes_io.read(3)
 
     @classmethod
-    def encode(cls, array_length: int) -> bytes:
-        return b'\x00' * math.ceil(array_length / 8)
+    def encode(cls, value: str) -> bytes:
+        return b'\x00' * math.ceil(cls.COUNT / 8)
 
 
 class Particle(DataType):
@@ -1230,18 +1232,10 @@ class Particle(DataType):
         44: [Slot],
 
         # minecraft:vibration
-        # Position Source Type	VarInt
-        # The type of the vibration source (0 for `minecraft:block`, 1 for `minecraft:entity`)
-
-        # Block Position
-        # The position of the block the vibration originated from. Only present if Position Type is minecraft:block.
-
-        # Entity ID VarInt
-        # The ID of the entity the vibration originated from. Only present if Position Type is minecraft:entity.
-
-        # Entity eye height Float
-        # The height of the entity's eye relative to the entity. Only present if Position Type is minecraft:entity.
-
+        # Position Source Type	VarInt	The type of the vibration source (0 for `minecraft:block`, 1 for `minecraft:entity`)
+        # Block Position    Position    The position of the block the vibration originated from. Only present if Position Type is minecraft:block.
+        # Entity ID VarInt  The ID of the entity the vibration originated from. Only present if Position Type is minecraft:entity.
+        # Entity eye height Float   The height of the entity's eye relative to the entity. Only present if Position Type is minecraft:entity.
         # Ticks	VarInt	The amount of ticks it takes for the vibration to travel from its source to its destination.
         45: [VarInt, Position, VarInt, Float, VarInt],
 
@@ -1299,31 +1293,28 @@ class EntityMetadata(DataType):
                 [Boolean, TextComponent],
                 [Slot],
                 [Boolean],
-                [Float, Float, Float],  # 9 Rotation
+                [Float, Float, Float],      # 9 Rotation
                 [Position],
-                [Boolean, Position],  # 11 OptPosition
-                [VarInt],  # 12 Direction Down = 0, Up = 1, North = 2, South = 3, West = 4, East = 5
-                [Boolean, UUID],  # 13 OptUUID
-                [VarInt],  # 14 OptBlockID
-                [VarInt],  # 15
+                [Boolean, Position],        # 11 OptPosition
+                [VarInt],       # 12 Direction Down = 0, Up = 1, North = 2, South = 3, West = 4, East = 5
+                [Boolean, UUID],    # 13 OptUUID
+                [VarInt],       # 14 OptBlockID
+                [VarInt],       # 15
                 [NBT],
                 [Particle],
-                [],  # HardCode In Functions Particles
-                [VarInt, VarInt, VarInt],  # 19 villager type, villager profession, level (See below.)
-                [VarInt],  # 20 0 for absent; 1 + actual value otherwise. Used for entity IDs.
-                [VarInt],
-                # 21 VarInt Enum	STANDING = 0, FALL_FLYING = 1, SLEEPING = 2, SWIMMING = 3, SPIN_ATTACK = 4, SNEAKING = 5, LONG_JUMPING = 6, DYING = 7, CROAKING = 8, USING_TONGUE = 9, SITTING = 10, ROARING = 11, SNIFFING = 12, EMERGING = 13, DIGGING = 14, (1.21.3: SLIDING = 15, SHOOTING = 16, INHALING = 17)
+                [],     # HardCode In Functions Particles
+                [VarInt, VarInt, VarInt],   # 19 villager type, villager profession, level (See below.)
+                [VarInt],       # 20 0 for absent; 1 + actual value otherwise. Used for entity IDs.
+                [VarInt],       # 21 VarInt Enum	STANDING = 0, FALL_FLYING = 1, SLEEPING = 2, SWIMMING = 3, SPIN_ATTACK = 4, SNEAKING = 5, LONG_JUMPING = 6, DYING = 7, CROAKING = 8, USING_TONGUE = 9, SITTING = 10, ROARING = 11, SNIFFING = 12, EMERGING = 13, DIGGING = 14, (1.21.3: SLIDING = 15, SHOOTING = 16, INHALING = 17)
                 [VarInt],
                 [Identifier],
                 [VarInt],
-                [Boolean, Identifier, Position],
-                # 25 dimension identifier, position; only if the Boolean is set to true.
+                [Boolean, Identifier, Position],    # 25 dimension identifier, position; only if the Boolean is set to true.
                 [Identifier],
-                [VarInt],
-                # 27 IDLING = 0, FEELING_HAPPY = 1, SCENTING = 2, SNIFFING = 3, SEARCHING = 4, DIGGING = 5, RISING = 6
-                [VarInt],  # 28 IDLE = 0, ROLLING = 1, SCARED = 2, UNROLLING = 3
-                [Float, Float, Float],  # 29 Vector3 x, y, z
-                [Float, Float, Float, Float],  # 30 Quaternion x, y, z, w
+                [VarInt],       # 27 IDLING = 0, FEELING_HAPPY = 1, SCENTING = 2, SNIFFING = 3, SEARCHING = 4, DIGGING = 5, RISING = 6
+                [VarInt],       # 28 IDLE = 0, ROLLING = 1, SCARED = 2, UNROLLING = 3
+                [Float, Float, Float],          # 29 Vector3 x, y, z
+                [Float, Float, Float, Float],   # 30 Quaternion x, y, z, w
             ])}
 
     @classmethod
@@ -1353,7 +1344,7 @@ class EntityMetadata(DataType):
             }
 
             type_cls_list = cls.TYPE_MAP[value_type]
-            if len(type_cls_list) > 1 and type_cls_list[0] == Boolean:  # optValue
+            if len(type_cls_list) > 1 and type_cls_list[0] == Boolean:   # optValue
 
                 _meta_data['value'].append(Boolean.decode(bytes_io))
 
@@ -1410,8 +1401,7 @@ class TeleportFlags(Int):
         0x0020	Relative Velocity X
         0x0040	Relative Velocity Y
         0x0080	Relative Velocity Z
-        0x0100	Rotate velocity according to the change in rotation, before applying the velocity change in this packet.
-        Combining this with absolute rotation works as expected—the difference in rotation is still used.
+        0x0100	Rotate velocity according to the change in rotation, before applying the velocity change in this packet. Combining this with absolute rotation works as expected—the difference in rotation is still used.
     """
 
 
@@ -1483,10 +1473,11 @@ class Node(DataType):
         :param value:
         :return:
         """
-        raise NotImplementedError
+        pass
 
 
 class SlotDisplay(DataType):
+
     EMPTY = 0
     ANY_FUEL = 1
     ITEM = 2
@@ -1672,7 +1663,7 @@ def decode_palette(bits_per_entry: int, data_int: int, palette: list = None) -> 
     _bytes = bin(data_int).replace('0b', '').rjust(64, '0')
     _bytes = _bytes[::-1]
     blocks = []
-    for _ in [_bytes[i:i + bits_per_entry] for i in range(0, len(_bytes), bits_per_entry)]:
+    for _ in [_bytes[i:i+bits_per_entry] for i in range(0, len(_bytes), bits_per_entry)]:
         if len(_) < bits_per_entry:
             continue
 
@@ -1755,10 +1746,9 @@ class ChunkSection(DataType):
 
 
 class ChunkData(DataType):
-    CHUNK_SIZE = 24
 
     @classmethod
-    def decode(cls, bytes_io: IO) -> dict:
+    def decode(cls, bytes_io: IO, dimension_chunk_size: int = 24) -> dict:
         res = dict()
 
         res['heightmaps'] = NBT.decode(bytes_io)
@@ -1766,7 +1756,7 @@ class ChunkData(DataType):
         res['chunk_byte_size'] = VarInt.decode(bytes_io)
 
         res['chunk_sections'] = [
-            ChunkSection.decode(bytes_io) for _ in range(cls.CHUNK_SIZE)
+            ChunkSection.decode(bytes_io) for _ in range(dimension_chunk_size)
         ]
 
         block_entities = VarInt.decode(bytes_io)
@@ -1776,7 +1766,7 @@ class ChunkData(DataType):
                 'y': Short.decode(bytes_io),
                 '_type': VarInt.decode(bytes_io),
                 'data': NBT.decode(bytes_io),
-            } for _ in range(block_entities)
+            }  for _ in range(block_entities)
         ]
 
         return res
@@ -1796,7 +1786,7 @@ class LightData(DataType):
             _len = VarInt.decode(bytes_io)
             res[key] = []
             for _ in range(_len):
-                VarInt.decode(bytes_io)  # Prefixed Array Length. Always 2048
+                VarInt.decode(bytes_io)     # Prefixed Array Length. Always 2048
                 res[key].append([Byte.decode(bytes_io) for __ in range(2048)])
 
         return res
@@ -1811,7 +1801,18 @@ for chunk_sec in range(-4, 20):
                     x, y + chunk_sec * 16, z, chunk_sec
                 ])
 
-chunk_df = pd.DataFrame(rows, columns=['x', 'y', 'z', 'chunk_y'])
+chunk_df_24d = pd.DataFrame(rows, columns=['x', 'y', 'z', 'chunk_y'])
+
+rows = []
+for chunk_sec in range(0, 16):
+    for y in range(16):
+        for z in range(16):
+            for x in range(16):
+                rows.append([
+                    x, y + chunk_sec * 16, z, chunk_sec
+                ])
+
+chunk_df_16d = pd.DataFrame(rows, columns=['x', 'y', 'z', 'chunk_y'])
 
 
 @dataclass
@@ -1824,17 +1825,24 @@ class Chunk:
     z: int
     heightmaps: np.ndarray
     blocks: np.ndarray
+    dimension: int
 
     def __repr__(self):
-        return f"Chunk {self.x:>5}:{self.z:<5}"
+        return f"Chunk {self.dimension} {self.x:>5}:{self.z:<5}"
 
     @classmethod
-    def decode_result(cls, chunk_x: int, chunk_z: int, data: dict, **kwargs) -> 'Chunk':
+    def decode_result(
+            cls,
+            dimension: int,
+            chunk_x: int, chunk_z: int,
+            data: dict, **kwargs
+    ) -> 'Chunk':
         """
             Decode Chunk Data to Chunk
         :param chunk_x:
         :param chunk_z:
         :param data:
+        :param dimension:
         :param kwargs:
         :return:
         """
@@ -1870,8 +1878,17 @@ class Chunk:
         return Chunk(
             x=chunk_x, z=chunk_z,
             heightmaps=np.array(heightmaps[:256], dtype=np.uint32).reshape((16, 16)),
-            blocks=np.array(blocks_data, dtype=np.uint32).reshape((384, 16, 16))
+            blocks=np.array(blocks_data, dtype=np.uint32).reshape(
+                (cls.get_dimension_chunk_size(dimension) * 16, 16, 16)
+            ),
+            dimension=dimension
         )
+
+    @classmethod
+    def get_dimension_chunk_size(cls, dimension: int) -> int:
+        return {
+            0: 24, # OverWorld With 384
+        }.get(dimension, 16)
 
     @staticmethod
     def to_name(block_id: int) -> str | None:
@@ -1892,23 +1909,29 @@ class Chunk:
             获取 Dataframe 数据
         :return:
         """
-        df = chunk_df.copy()
+        df = {
+            24: chunk_df_24d,
+        }.get(self.get_dimension_chunk_size(self.dimension), chunk_df_16d).copy()
+
         df['block_id'] = self.blocks.ravel()
         df['chunk_x'] = self.x
         df['chunk_z'] = self.z
         df['x'] = df['x'] + self.x * 16
         df['z'] = df['z'] + self.z * 16
+        df['dimension'] = self.dimension
         df['block_name'] = df.block_id.apply(self.to_name)
         df['is_top'] = False
+
 
         for _x in range(16):
             for _z in range(16):
                 df.loc[
-                    (df.x == _x + self.x * 16) & (df.z == _z + self.z * 16) & (df.y == self.heightmaps[_x][_z] - 64),
+                    (df.x == _x + self.x * 16) & (df.z == _z + self.z * 16) &
+                    (df.y == self.heightmaps[_x][_z] - (64 if self.get_dimension_chunk_size(self.dimension) == 24 else 0)),
                     'is_top'
                 ] = True
 
-        return df[['block_id', 'block_name', 'x', 'y', 'z', 'chunk_x', 'chunk_y', 'chunk_z', 'is_top']]
+        return df[['block_id', 'block_name', 'x', 'y', 'z', 'dimension', 'chunk_x', 'chunk_y', 'chunk_z', 'is_top']]
 
     def update_block(self, location: Position, block_id: int):
         """
@@ -1917,7 +1940,11 @@ class Chunk:
         :param block_id:
         :return:
         """
-        self.blocks[location.y + 64][location.z % 16][location.x % 16] = block_id
+        self.blocks[
+            location.y + (64 if self.get_dimension_chunk_size(self.dimension) == 24 else 0),
+            location.z % 16,
+            location.x % 16,
+        ] = block_id
 
     def get_block_id(self, location: Position) -> int:
         """
@@ -1925,48 +1952,9 @@ class Chunk:
         :param location:
         :return:
         """
-        return int(self.blocks[location.y + 64][location.z % 16][location.x % 16])
-
-
-class ChunkManager:
-    """
-        Chunk 管理器
-    """
-
-    def __init__(self):
-        self.chunks = {}
-
-    def add(self, chunk: Chunk):
-        self.chunks[f"{chunk.x}_{chunk.z}"] = chunk
-
-    def delete(self, chunk_x: int, chunk_z: int):
-        try:
-            del self.chunks[f"{chunk_x}_{chunk_z}"]
-        except KeyError:
-            ...
-
-    def get_chunk(self, chunk_x: int, chunk_z: int) -> Chunk | None:
-        try:
-            return self.chunks[f"{chunk_x}_{chunk_z}"]
-        except KeyError:
-            return None
-
-    def get_chunk_by_pos(self, location: Position) -> Chunk | None:
-        try:
-            return self.chunks[f"{location.x // 16}_{location.z // 16}"]
-        except KeyError:
-            return None
-
-    def get_block(self, location: Position) -> int | None:
-        try:
-            return self.chunks[f"{location.x // 16}_{location.z // 16}"].get_block_id(location)
-        except KeyError:
-            return None
-
-    def update_block(self, location: Position, block_id: int) -> bool:
-        _chunk = self.get_chunk_by_pos(location)
-        if _chunk is None:
-            return False
-        else:
-            _chunk.update_block(location, block_id)
-            return True
+        return int(
+            self.blocks[
+                location.y + (64 if self.get_dimension_chunk_size(self.dimension) == 24 else 0),
+                location.z % 16,
+                location.x % 16]
+        )

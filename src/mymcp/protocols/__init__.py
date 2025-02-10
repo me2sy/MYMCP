@@ -4,11 +4,12 @@
     ~~~~~~~~~~~~~~~~~~
     
     Log:
+        2025-02-10 0.1.2 Me2sY  新增维度Enum
          2025-02-08 0.1.0 Me2sY 创建
 """
 
 __author__ = 'Me2sY'
-__version__ = '0.1.0'
+__version__ = '0.1.2'
 
 __all__ = [
     'ProtocolEnum',
@@ -56,6 +57,22 @@ class ProtocolEnum:
         LOGIN = 2
         CONFIGURATION = 3
         PLAY = 4
+
+    class Dimension(Enum):
+        """
+            维度
+        """
+        OVERWORLD = 0
+        THE_NETHER = 3
+        THE_END = 1
+
+    class DimensionChunkHeight(Enum):
+        """
+            维度高度
+        """
+        OVERWORLD = 24
+        THE_NETHER = 16
+        THE_END = 16
 
     class HandShaking(Enum):
         """
@@ -312,7 +329,7 @@ class ProtocolEnum:
         RECORD = 2
         WEATHER = 3
         BLOCK = 4
-        HOSTILE = 5
+        HOSTILE =5
         NEUTRAL = 6
         PLAYER = 7
         AMBIENT = 8
@@ -700,15 +717,16 @@ class Packet:
 
     @classmethod
     def decode(cls, bytes_io: IO) -> OrderedDict[str, Any]:
-
+        """
+            解码
+        :param bytes_io:
+        :return:
+        """
         result = OrderedDict()
-
         for field in cls.FIELDS:
-
             if field.optional_field_name is None or field.optional_condition(
                     result.get(field.optional_field_name, False)
             ):
-
                 # if field is an Array
                 if isinstance(field, FieldsArray):
                     result[field.name] = field.decode(
@@ -719,11 +737,15 @@ class Packet:
                     )
                 else:
                     result[field.name] = field.data_type.decode(bytes_io)
-
         return result
 
     @classmethod
     def encode(cls, **kwargs) -> DataPacket:
+        """
+            编码
+        :param kwargs:
+        :return:
+        """
         bs = bytes()
         for field in cls.FIELDS:
             if field.optional_field_name is None or field.optional_condition(
