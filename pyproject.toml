@@ -4,29 +4,24 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mymcp"
-version = "0.1.2"
+version = "0.2.0"
 authors = [
     {name = "Me2sY", email = "me2sy@outlook.com"}
 ]
-description = "Encode and decode the protocols of Minecraft (Java Edition) version 1.21.4 in Python. With a demo proxy server and a demo client/player."
+description = "Encode and Decode the DataType and Protocols (Almost 100%) of the Minecraft (Java Edition) version 1.21.4 (Protocol 769) in Python. "
 readme = "README.md"
 requires-python = ">= 3.12"
 keywords = ["Minecraft", "Protocols", "Game"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Development Status :: 4 - Beta",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Natural Language :: Chinese (Simplified)",
     "Topic :: Games/Entertainment"
 ]
 
 dependencies = [
-    "loguru",
-    "pynbt",
-    "numpy", "pandas",
-
-    # For Proxy / Client
-    "twisted"
+    "mutf8",
 ]
 
 [project.urls]
