@@ -4273,6 +4273,7 @@ class PacketsV769:
         STATUS = ENUMS.Status.PLAY
         BOUND_TO = ENUMS.BoundTo.SERVER
         PACKET_ID_HEX = 0x2B
+
         id_: Field | Int
 
 

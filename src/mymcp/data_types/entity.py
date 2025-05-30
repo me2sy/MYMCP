@@ -127,7 +127,7 @@ class EntityMetadata(Combined):
     @classmethod
     def decode(cls, bytes_source: BytesIO | bytes, *args, **kwargs) -> Self:
         """
-            编码
+            解码
         :param bytes_source:
         :param args:
         :param kwargs:
